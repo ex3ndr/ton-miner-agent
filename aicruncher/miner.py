@@ -18,6 +18,7 @@ import queue
 mf = cl.mem_flags
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+start_time = time.time()
 
 # Config
 batchSize = 512 * 64
@@ -330,31 +331,74 @@ def miner_config_thread():
 def start_miner_config_thread():
     threading.Thread(target=miner_config_thread).start()
 
+def apply_speed(src, value):
+    src.append(value)
+    if len(src) > 5:
+        del src[0]
+
+def resolve_speed(src):
+    if len(src) == 0:
+        return 0
+    res = 0
+    for i in range(0, len(src)):
+        res = res + src[i]
+    res = res / len(src)
+    return res
+
 def miner_mon(count):
     global mined
     global mined_dev
     global rate
+
+    # Start Timer
     start = time.time()
-    global_start = start
-    start_mined = mined
+    speed_average = []
+    speed_average_dev = {}
+
+    # Reset mined state
+    mined = 0
+    for i in range(0, count):
+        mined_dev[str(i)] = 0
+        speed_average_dev[str(i)] = []
+    
     while True:
         time.sleep(10)
         try:
-            delta = time.time() - start
-            delta_global = time.time() - global_start
-            rate_moment = (mined - start_mined) / (delta * 1000 * 1000)
-            rate = (mined) / (delta_global * 1000 * 1000)
-            logging.info("Performance " + str(rate_moment) + " MH/s (" + (str(rate) + " MH/s)"))
+
+            # Resolve time
+            time_delta = time.time() - start
+            start = time.time()
+
+            # Resolve speed
+            delta = mined / (time_delta * 1000 * 1000)
+            mined = 0
+
+            # Update average speed
+            apply_speed(speed_average, delta)
+            total_average = resolve_speed(speed_average)
+
+            # Calculate thread speed
             rates = []
             for i in range(0, count):
-                rates.append((mined_dev.get(str(i),0)) / (delta_global * 1000 * 1000))
+
+                # Resolve speed
+                dev_delta = mined_dev.get(str(i), 0) / (time_delta * 1000 * 1000)
+                mined_dev[str(i)] = 0
+
+                # Update average speed
+                apply_speed(speed_average_dev[str(i)], dev_delta)
+                rates.append(resolve_speed(speed_average_dev[str(i)]))
+
+            # Logging
+            logging.info("Performance " + str(total_average) + " MH/s")          
+
+            # Persisting
             with open('stats.json', 'w') as json_file:
                 json.dump({
-                    'total': rate * 1000,
-                    'rates': rates
+                    'total': total_average * 1000, # in khs
+                    'rates': rates,
+                    'uptime': time.time() - start_time
                 }, json_file)
-            start = time.time()
-            start_mined = mined
         except Exception as e:
             logging.warn(traceback.format_exc())
             logging.warn("Monitoring error");

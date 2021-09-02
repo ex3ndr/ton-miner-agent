@@ -9,18 +9,19 @@ local fan=$(jq '.fan' <<< $gpu_stats)
 
 # Read miner stats
 local hs="[]"
+local uptime=0
 if [ -f "/hive/miners/custom/aicruncher/stats.json" ]; then
   khs=`jq .total /hive/miners/custom/aicruncher/stats.json`
   hs=`jq .rates /hive/miners/custom/aicruncher/stats.json`
+  uptime=`jq .uptime /hive/miners/custom/aicruncher/stats.json`
 else
   echo "No stats found"
   khs=0
 fi
 
 # Uptime
-local ver=0.0.35
+local ver=0.0.37
 local hs_units="mhs"
-local uptime=1000
 
 # Performance
 stats=$(jq -nc \
