@@ -80,6 +80,21 @@ def validate(config, random, value):
     else:
         return True
 
+def apply_speed(src, value):
+    src.append(value)
+    if len(src) > 5:
+        del src[0]
+
+def resolve_speed(src):
+    if len(src) == 0:
+        return 0
+    res = 0
+    for i in range(0, len(src)):
+        res = res + src[i]
+    res = res / len(src)
+    return res
+
+
 reportQueue = queue.Queue()
 def report(key, ref, seed, random, value, rate):
     global shipId
@@ -167,11 +182,14 @@ def config_refresh_job():
 mined = 0
 mined_dev = {}
 rate = 0
+speed_average = []
+speed_average_dev = {}
 def miner_job(index, deviceId):
     global mined
     global mined_dev
     global repeats
     global latest_config
+    global speed_average
     
     config = latest_config
     start = time.time()
@@ -331,29 +349,15 @@ def miner_config_thread():
 def start_miner_config_thread():
     threading.Thread(target=miner_config_thread).start()
 
-def apply_speed(src, value):
-    src.append(value)
-    if len(src) > 5:
-        del src[0]
-
-def resolve_speed(src):
-    if len(src) == 0:
-        return 0
-    res = 0
-    for i in range(0, len(src)):
-        res = res + src[i]
-    res = res / len(src)
-    return res
-
 def miner_mon(count):
     global mined
     global mined_dev
     global rate
+    global speed_average
+    global speed_average_dev
 
     # Start Timer
     start = time.time()
-    speed_average = []
-    speed_average_dev = {}
 
     # Reset mined state
     mined = 0
@@ -376,6 +380,7 @@ def miner_mon(count):
             # Update average speed
             apply_speed(speed_average, delta)
             total_average = resolve_speed(speed_average)
+            rate = total_average
 
             # Calculate thread speed
             rates = []
