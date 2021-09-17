@@ -1,0 +1,7 @@
+*.xo
+*.xo.compile_summary
+*.log
+*.jou
+_x
+.Xil
+build
