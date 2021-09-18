@@ -505,102 +505,102 @@ __kernel __attribute__((reqd_work_group_size(1, 1, 1)))  void do_work(__global _
   u32 head[16];
   u32 tail[16];
   data_init(data, head, tail);
-  output_random[0] = head[0];
-  output_random[1] = head[1];
-  output_random[2] = head[2];
-  output_random[3] = head[3];
-  output_random[4] = head[4];
-  output_random[5] = head[5];
-  output_random[6] = head[6];
-  output_random[7] = head[7];
-  output_random[8] = head[8];
-  output_random[9] = head[9];
-  output_random[10] = head[10];
-  output_random[11] = head[11];
-  output_random[12] = head[12];
-  output_random[13] = head[13];
-  output_random[14] = head[14];
-  output_random[15] = head[15];
+  // output[0] = head[0];
+  // output[1] = head[1];
+  // output[2] = head[2];
+  // output[3] = head[3];
+  // output[4] = head[4];
+  // output[5] = head[5];
+  // output[6] = head[6];
+  // output[7] = head[7];
+  // output_random[8] = head[8];
+  // output_random[9] = head[9];
+  // output_random[10] = head[10];
+  // output_random[11] = head[11];
+  // output_random[12] = head[12];
+  // output_random[13] = head[13];
+  // output_random[14] = head[14];
+  // output_random[15] = head[15];
 
-  output_random[16] = tail[0];
-  output_random[17] = tail[1];
-  output_random[18] = tail[2];
-  output_random[19] = tail[3];
-  output_random[20] = tail[4];
-  output_random[21] = tail[5];
-  output_random[22] = tail[6];
-  output_random[23] = tail[7];
-  output_random[24] = tail[8];
-  output_random[25] = tail[9];
-  output_random[26] = tail[10];
-  output_random[27] = tail[11];
-  output_random[28] = tail[12];
-  output_random[29] = tail[13];
-  output_random[30] = tail[14];
-  output_random[31] = tail[15];
+  // output_random[16] = tail[0];
+  // output_random[17] = tail[1];
+  // output_random[18] = tail[2];
+  // output_random[19] = tail[3];
+  // output_random[20] = tail[4];
+  // output_random[21] = tail[5];
+  // output_random[22] = tail[6];
+  // output_random[23] = tail[7];
+  // output_random[24] = tail[8];
+  // output_random[25] = tail[9];
+  // output_random[26] = tail[10];
+  // output_random[27] = tail[11];
+  // output_random[28] = tail[12];
+  // output_random[29] = tail[13];
+  // output_random[30] = tail[14];
+  // output_random[31] = tail[15];
 
-  // // Latest
-  // u32 latest[8];
-  // u64 latest_index;
-  // latest[0] = 4294967294;
-  // latest[1] = 4294967294;
-  // latest[2] = 4294967294;
-  // latest[3] = 4294967294;
-  // latest[4] = 4294967294;
-  // latest[5] = 4294967294;
-  // latest[6] = 4294967294;
-  // latest[7] = 4294967294;
+  // Latest
+  u32 latest[8];
+  u32 current[8];
+  u64 latest_index;
+  u32 current_id = get_global_id(0);
+  u64 index = offset + ((u64)current_id) * ((u64)iterations);
 
-  // u32 current_id = get_global_id(0);
-  // u32 current[8];
-  // u64 index = offset + ((u64)current_id) * ((u64)iterations);
+  // Prepare
+  sha256_ctx_t ctx0 = miner_init(head);
 
-  // // Prepare
-  // sha256_ctx_t ctx0 = miner_init(head);
-
-  // for(int i = 0; i<iterations; i++) {
+  for(int i = 0; i<iterations; i++) {
           
-  //   // Mine
-  //   sha256_ctx_t ctx = miner_apply(ctx0, tail, index);
+    // Mine
+    sha256_ctx_t ctx = miner_apply(ctx0, tail, index);
 
-  //   // Output
-  //   current[0] = hc_swap32_S(ctx.h[0]);
-  //   current[1] = hc_swap32_S(ctx.h[1]);
-  //   current[2] = hc_swap32_S(ctx.h[2]);
-  //   current[3] = hc_swap32_S(ctx.h[3]);
-  //   current[4] = hc_swap32_S(ctx.h[4]);
-  //   current[5] = hc_swap32_S(ctx.h[5]);
-  //   current[6] = hc_swap32_S(ctx.h[6]);
-  //   current[7] = hc_swap32_S(ctx.h[7]);
+    // Output
+    current[0] = hc_swap32_S(ctx.h[0]);
+    current[1] = hc_swap32_S(ctx.h[1]);
+    current[2] = hc_swap32_S(ctx.h[2]);
+    current[3] = hc_swap32_S(ctx.h[3]);
+    current[4] = hc_swap32_S(ctx.h[4]);
+    current[5] = hc_swap32_S(ctx.h[5]);
+    current[6] = hc_swap32_S(ctx.h[6]);
+    current[7] = hc_swap32_S(ctx.h[7]);
 
-  //   if (memcmp(current, latest, 32) < 0) {
-  //     latest_index = index;
-  //     latest[0] = current[0];
-  //     latest[1] = current[1];
-  //     latest[2] = current[2];
-  //     latest[3] = current[3];
-  //     latest[4] = current[4];
-  //     latest[5] = current[5];
-  //     latest[6] = current[6];
-  //     latest[7] = current[7];
-  //   }
-
-  //   index++;
-  // }
+    if (i == 0) {
+      latest_index = index;
+      latest[0] = current[0];
+      latest[1] = current[1];
+      latest[2] = current[2];
+      latest[3] = current[3];
+      latest[4] = current[4];
+      latest[5] = current[5];
+      latest[6] = current[6];
+      latest[7] = current[7];
+    } else  if (memcmp(current, latest, 32) < 0) {
+      latest_index = index;
+      latest[0] = current[0];
+      latest[1] = current[1];
+      latest[2] = current[2];
+      latest[3] = current[3];
+      latest[4] = current[4];
+      latest[5] = current[5];
+      latest[6] = current[6];
+      latest[7] = current[7];
+    }
+    index++;
+  }
   
-  // // Export output
-  // output[current_id * 8 + 0] = latest[0];
-  // output[current_id * 8 + 1] = latest[1];
-  // output[current_id * 8 + 2] = latest[2];
-  // output[current_id * 8 + 3] = latest[3];
-  // output[current_id * 8 + 4] = latest[4];
-  // output[current_id * 8 + 5] = latest[5];
-  // output[current_id * 8 + 6] = latest[6];
-  // output[current_id * 8 + 7] = latest[7];
+  // Export output
+  output[current_id * 8 + 0] = latest[0];
+  output[current_id * 8 + 1] = latest[1];
+  output[current_id * 8 + 2] = latest[2];
+  output[current_id * 8 + 3] = latest[3];
+  output[current_id * 8 + 4] = latest[4];
+  output[current_id * 8 + 5] = latest[5];
+  output[current_id * 8 + 6] = latest[6];
+  output[current_id * 8 + 7] = latest[7];
 
-  // // Preprocess data
-  // data_finalize(tail, latest_index);
+  // Preprocess data
+  data_finalize(tail, latest_index);
   
-  // // Export random
-  // data_export_random(tail, output_random + current_id * RANDOM_SIZE);
+  // Export random
+  data_export_random(tail, output_random + current_id * RANDOM_SIZE);
 }
