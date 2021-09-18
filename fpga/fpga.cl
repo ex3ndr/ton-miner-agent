@@ -1,4 +1,4 @@
-#define DECLSPEC  __inline static
+#define DECLSPEC __inline static
 #define SHA256C00 0x428a2f98u
 #define SHA256C01 0x71374491u
 #define SHA256C02 0xb5c0fbcfu
@@ -155,17 +155,7 @@ DECLSPEC u32 hc_add3_S (const u32 a, const u32 b, const u32 c)
                                        
 DECLSPEC u32 hc_rotl32_S (const u32 a, const int n)
 {
-  #if   defined _CPU_OPENCL_EMU_H
-  return rotl32 (a, n);
-  #elif defined IS_CUDA || defined IS_HIP
-  return rotl32_S (a, n);
-  #else
-  #ifdef USE_ROTATE
-  return rotate (a, (u32) (n));
-  #else
   return ((a << n) | (a >> (32 - n)));
-  #endif
-  #endif
 }
                    
 DECLSPEC void append_helper_1x4_S (u32 *r, const u32 v, const u32 *m)
@@ -203,28 +193,10 @@ DECLSPEC void append_0x80_4x4_S (u32 *w0, u32 *w1, u32 *w2, u32 *w3, const u32 o
 
 DECLSPEC u32 hc_swap32_S (const u32 v)
 {
-  u32 r;
-
-  #ifdef _CPU_OPENCL_EMU_H
-  r = byte_swap_32 (v);
-  #else
-  #if   (defined IS_AMD || defined IS_HIP) && HAS_VPERM == 1
-  __asm__ __volatile__ ("V_PERM_B32 %0, 0, %1, %2;" : "=v"(r) : "v"(v), "v"(0x00010203));
-  #elif defined IS_NV  && HAS_PRMT  == 1
-  asm volatile ("prmt.b32 %0, %1, 0, 0x0123;" : "=r"(r) : "r"(v));
-  #else
-  #ifdef USE_SWIZZLE
-  r = as_uint (as_uchar4 (v).s3210);
-  #else
-  r = ((v & 0xff000000) >> 24)
+ return ((v & 0xff000000) >> 24)
     | ((v & 0x00ff0000) >>  8)
     | ((v & 0x0000ff00) <<  8)
     | ((v & 0x000000ff) << 24);
-  #endif
-  #endif
-  #endif
-
-  return r;
 }
 
 DECLSPEC void sha256_init (sha256_ctx_t *ctx)
@@ -527,163 +499,108 @@ int memcmp (const u32 *a, const u32 *b, int count) {
   return 0;
 }
 
-__kernel void do_work(__global __const u32 *data, __global u32 *output, __global u8 *output_random, u64 offset, u32 iterations) {
-  u32 current_id = get_global_id(0);
+__kernel __attribute__((reqd_work_group_size(1, 1, 1)))  void do_work(__global __const u32 *data, __global u32 *output, __global u8 *output_random, u64 offset, u32 iterations) {
 
   // Prepare data
   u32 head[16];
   u32 tail[16];
   data_init(data, head, tail);
+  output_random[0] = head[0];
+  output_random[1] = head[1];
+  output_random[2] = head[2];
+  output_random[3] = head[3];
+  output_random[4] = head[4];
+  output_random[5] = head[5];
+  output_random[6] = head[6];
+  output_random[7] = head[7];
+  output_random[8] = head[8];
+  output_random[9] = head[9];
+  output_random[10] = head[10];
+  output_random[11] = head[11];
+  output_random[12] = head[12];
+  output_random[13] = head[13];
+  output_random[14] = head[14];
+  output_random[15] = head[15];
 
-  // Latest
-  u32 latest[8];
-  u64 latest_index;
-  latest[0] = 4294967294;
-  latest[1] = 4294967294;
-  latest[2] = 4294967294;
-  latest[3] = 4294967294;
-  latest[4] = 4294967294;
-  latest[5] = 4294967294;
-  latest[6] = 4294967294;
-  latest[7] = 4294967294;
-  u32 current[8];
-  u64 index = offset + ((u64)current_id) * ((u64)iterations);
+  output_random[16] = tail[0];
+  output_random[17] = tail[1];
+  output_random[18] = tail[2];
+  output_random[19] = tail[3];
+  output_random[20] = tail[4];
+  output_random[21] = tail[5];
+  output_random[22] = tail[6];
+  output_random[23] = tail[7];
+  output_random[24] = tail[8];
+  output_random[25] = tail[9];
+  output_random[26] = tail[10];
+  output_random[27] = tail[11];
+  output_random[28] = tail[12];
+  output_random[29] = tail[13];
+  output_random[30] = tail[14];
+  output_random[31] = tail[15];
 
-  // Prepare
-  sha256_ctx_t ctx0 = miner_init(head);
+  // // Latest
+  // u32 latest[8];
+  // u64 latest_index;
+  // latest[0] = 4294967294;
+  // latest[1] = 4294967294;
+  // latest[2] = 4294967294;
+  // latest[3] = 4294967294;
+  // latest[4] = 4294967294;
+  // latest[5] = 4294967294;
+  // latest[6] = 4294967294;
+  // latest[7] = 4294967294;
 
-  for(int i = 0; i<iterations; i++) {
+  // u32 current_id = get_global_id(0);
+  // u32 current[8];
+  // u64 index = offset + ((u64)current_id) * ((u64)iterations);
+
+  // // Prepare
+  // sha256_ctx_t ctx0 = miner_init(head);
+
+  // for(int i = 0; i<iterations; i++) {
           
-    // Mine
-    sha256_ctx_t ctx = miner_apply(ctx0, tail, index);
+  //   // Mine
+  //   sha256_ctx_t ctx = miner_apply(ctx0, tail, index);
 
-    // Output
-    current[0] = hc_swap32_S(ctx.h[0]);
-    current[1] = hc_swap32_S(ctx.h[1]);
-    current[2] = hc_swap32_S(ctx.h[2]);
-    current[3] = hc_swap32_S(ctx.h[3]);
-    current[4] = hc_swap32_S(ctx.h[4]);
-    current[5] = hc_swap32_S(ctx.h[5]);
-    current[6] = hc_swap32_S(ctx.h[6]);
-    current[7] = hc_swap32_S(ctx.h[7]);
+  //   // Output
+  //   current[0] = hc_swap32_S(ctx.h[0]);
+  //   current[1] = hc_swap32_S(ctx.h[1]);
+  //   current[2] = hc_swap32_S(ctx.h[2]);
+  //   current[3] = hc_swap32_S(ctx.h[3]);
+  //   current[4] = hc_swap32_S(ctx.h[4]);
+  //   current[5] = hc_swap32_S(ctx.h[5]);
+  //   current[6] = hc_swap32_S(ctx.h[6]);
+  //   current[7] = hc_swap32_S(ctx.h[7]);
 
-    if (memcmp(current, latest, 32) < 0) {
-      latest_index = index;
-      latest[0] = current[0];
-      latest[1] = current[1];
-      latest[2] = current[2];
-      latest[3] = current[3];
-      latest[4] = current[4];
-      latest[5] = current[5];
-      latest[6] = current[6];
-      latest[7] = current[7];
-    }
+  //   if (memcmp(current, latest, 32) < 0) {
+  //     latest_index = index;
+  //     latest[0] = current[0];
+  //     latest[1] = current[1];
+  //     latest[2] = current[2];
+  //     latest[3] = current[3];
+  //     latest[4] = current[4];
+  //     latest[5] = current[5];
+  //     latest[6] = current[6];
+  //     latest[7] = current[7];
+  //   }
 
-    index++;
-  }
+  //   index++;
+  // }
   
-  // Export output
-  output[current_id * 8 + 0] = latest[0];
-  output[current_id * 8 + 1] = latest[1];
-  output[current_id * 8 + 2] = latest[2];
-  output[current_id * 8 + 3] = latest[3];
-  output[current_id * 8 + 4] = latest[4];
-  output[current_id * 8 + 5] = latest[5];
-  output[current_id * 8 + 6] = latest[6];
-  output[current_id * 8 + 7] = latest[7];
+  // // Export output
+  // output[current_id * 8 + 0] = latest[0];
+  // output[current_id * 8 + 1] = latest[1];
+  // output[current_id * 8 + 2] = latest[2];
+  // output[current_id * 8 + 3] = latest[3];
+  // output[current_id * 8 + 4] = latest[4];
+  // output[current_id * 8 + 5] = latest[5];
+  // output[current_id * 8 + 6] = latest[6];
+  // output[current_id * 8 + 7] = latest[7];
 
-  // Preprocess data
-  data_finalize(tail, latest_index);
+  // // Preprocess data
+  // data_finalize(tail, latest_index);
   
-  // Export random
-  data_export_random(tail, output_random + current_id * RANDOM_SIZE);
-}
-
-__kernel void do_work_debug(__global __const u32 *data, __global u32 *output, __global u8 *output_random, __global u32 *output_data, __global u32 *output_debug, u32 iter) {
-
-  // Latest
-  u32 latest[8];
-  u64 latest_index;
-  u32 current[8];
-  u64 index = 5000000000;
-
-  latest[0] = 4294967294;
-  latest[1] = 4294967294;
-  latest[2] = 4294967294;
-  latest[3] = 4294967294;
-  latest[4] = 4294967294;
-  latest[5] = 4294967294;
-  latest[6] = 4294967294;
-  latest[7] = 4294967294;
-
-  // Copy data
-  u32 head[16];
-  u32 tail[16];
-  data_init(data, head, tail);
-
-  // SHA256
-  sha256_ctx_t ctx0 = miner_init(head);
-
-  for(int i = 0; i<iter; i++) {
-
-    // Mine
-    sha256_ctx_t ctx = miner_apply(ctx0, tail, index);
-    
-    // Output
-    current[0] = hc_swap32_S(ctx.h[0]);
-    current[1] = hc_swap32_S(ctx.h[1]);
-    current[2] = hc_swap32_S(ctx.h[2]);
-    current[3] = hc_swap32_S(ctx.h[3]);
-    current[4] = hc_swap32_S(ctx.h[4]);
-    current[5] = hc_swap32_S(ctx.h[5]);
-    current[6] = hc_swap32_S(ctx.h[6]);
-    current[7] = hc_swap32_S(ctx.h[7]);
-
-    output_debug[i * 8 + 0] = current[0];
-    output_debug[i * 8 + 1] = current[1];
-    output_debug[i * 8 + 2] = current[2];
-    output_debug[i * 8 + 3] = current[3];
-    output_debug[i * 8 + 4] = current[4];
-    output_debug[i * 8 + 5] = current[5];
-    output_debug[i * 8 + 6] = current[6];
-    output_debug[i * 8 + 7] = current[7];
-
-    if (memcmp(current, latest, 32) < 0) {
-      latest_index = index;
-      latest[0] = current[0];
-      latest[1] = current[1];
-      latest[2] = current[2];
-      latest[3] = current[3];
-      latest[4] = current[4];
-      latest[5] = current[5];
-      latest[6] = current[6];
-      latest[7] = current[7];
-    }
-
-    // Update index
-    index++;
-  }
-  
-  output[0] = latest[0];
-  output[1] = latest[1];
-  output[2] = latest[2];
-  output[3] = latest[3];
-  output[4] = latest[4];
-  output[5] = latest[5];
-  output[6] = latest[6];
-  output[7] = latest[7];
-
-  // Prepocess data
-  data_finalize(tail, latest_index);
-  
-  // Export Random
-  data_export_random(tail, output_random);
-  
-  // Export data
-  for(int i = 0; i < 16; i++){
-    output_data[i] = hc_swap32_S(head[i]);
-  }
-  for(int i = 0; i < 16; i++){
-    output_data[16+i] = tail[i]; // Already swapped
-  }
+  // // Export random
+  // data_export_random(tail, output_random + current_id * RANDOM_SIZE);
 }
