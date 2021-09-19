@@ -1,3 +1,4 @@
+set -e
 mkdir -p build
 cd build
 # v++ -t hw_emu --platform $AWS_PLATFORM -R 1 --connectivity.nk vecadd:1 -c -k vecadd -o'hello_world.aws.xo' ../fpga/hello_world.cl

@@ -499,9 +499,9 @@ int memcmp(const u32 *a, const u32 *b, int count) {
   return 0;
 }
 
-__kernel 
-__attribute__((reqd_work_group_size(1, 1, 1))) 
-void do_work(__global __const u32 *data, __global u32 *output, __global u8 *output_random, u64 offset, u32 iterations) {
+__kernel __attribute__((reqd_work_group_size(1, 1, 1))) 
+void do_work(__global __const u32 *data, __global u32 *output,
+        __global u8 *output_random, u64 offset, u32 iterations) {
 
   // Prepare data
   u32 head[16];
@@ -510,45 +510,29 @@ void do_work(__global __const u32 *data, __global u32 *output, __global u8 *outp
 
   // Latest
   u32 latest[8];
-  u32 current[8];
   u64 latest_index;
+  latest[0] = 4294967294;
+  latest[1] = 4294967294;
+  latest[2] = 4294967294;
+  latest[3] = 4294967294;
+  latest[4] = 4294967294;
+  latest[5] = 4294967294;
+  latest[6] = 4294967294;
+  latest[7] = 4294967294;
+
   u32 current_id = get_global_id(0);
-  u64 startIndex = offset + ((u64)current_id) * ((u64)iterations);
+  u32 current[8];
+  u64 index = offset + ((u64)current_id) * ((u64)iterations);
 
   // Prepare
   sha256_ctx_t ctx0;
   miner_init(&ctx0, head);
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < iterations; i++) {
 
     // Mine
-    sha256_ctx_t ctx;
-    ctx.h[0] = ctx0.h[0];
-    ctx.h[1] = ctx0.h[1];
-    ctx.h[2] = ctx0.h[2];
-    ctx.h[3] = ctx0.h[3];
-    ctx.h[4] = ctx0.h[4];
-    ctx.h[5] = ctx0.h[5];
-    ctx.h[6] = ctx0.h[6];
-    ctx.h[7] = ctx0.h[7];
-    ctx.w0[0] = ctx0.w0[0];
-    ctx.w0[1] = ctx0.w0[1];
-    ctx.w0[2] = ctx0.w0[2];
-    ctx.w0[3] = ctx0.w0[3];
-    ctx.w1[0] = ctx0.w1[0];
-    ctx.w1[1] = ctx0.w1[1];
-    ctx.w1[2] = ctx0.w1[2];
-    ctx.w1[3] = ctx0.w1[3];
-    ctx.w2[0] = ctx0.w2[0];
-    ctx.w2[1] = ctx0.w2[1];
-    ctx.w2[2] = ctx0.w2[2];
-    ctx.w2[3] = ctx0.w2[3];
-    ctx.w3[0] = ctx0.w3[0];
-    ctx.w3[1] = ctx0.w3[1];
-    ctx.w3[2] = ctx0.w3[2];
-    ctx.w3[3] = ctx0.w3[3];
-    ctx.len = ctx0.len;
-    miner_apply(&ctx, tail, startIndex + i);
+    sha256_ctx_t ctx = ctx0;
+    miner_apply(&ctx, tail, index);
 
     // Output
     current[0] = hc_swap32_S(ctx.h[0]);
@@ -560,37 +544,19 @@ void do_work(__global __const u32 *data, __global u32 *output, __global u8 *outp
     current[6] = hc_swap32_S(ctx.h[6]);
     current[7] = hc_swap32_S(ctx.h[7]);
 
-    latest_index = startIndex + i;
-    latest[0] = current[0];
-    latest[1] = current[1];
-    latest[2] = current[2];
-    latest[3] = current[3];
-    latest[4] = current[4];
-    latest[5] = current[5];
-    latest[6] = current[6];
-    latest[7] = current[7];
-    // if (i == 0) {
-    //   latest_index = index;
-    //   latest[0] = current[0];
-    //   latest[1] = current[1];
-    //   latest[2] = current[2];
-    //   latest[3] = current[3];
-    //   latest[4] = current[4];
-    //   latest[5] = current[5];
-    //   latest[6] = current[6];
-    //   latest[7] = current[7];
-    // } else if (memcmp(current, latest, 32) < 0) {
-    //   latest_index = index;
-    //   latest[0] = current[0];
-    //   latest[1] = current[1];
-    //   latest[2] = current[2];
-    //   latest[3] = current[3];
-    //   latest[4] = current[4];
-    //   latest[5] = current[5];
-    //   latest[6] = current[6];
-    //   latest[7] = current[7];
-    // }
-    // index++;
+    if (memcmp(current, latest, 32) < 0) {
+      latest_index = index;
+      latest[0] = current[0];
+      latest[1] = current[1];
+      latest[2] = current[2];
+      latest[3] = current[3];
+      latest[4] = current[4];
+      latest[5] = current[5];
+      latest[6] = current[6];
+      latest[7] = current[7];
+    }
+
+    index++;
   }
 
   // Export output
