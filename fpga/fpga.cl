@@ -147,45 +147,6 @@ DECLSPEC u32 hc_rotl32_S(const u32 a, const int n) {
   return ((a << n) | (a >> (32 - n)));
 }
 
-DECLSPEC void append_helper_1x4_S(u32 *r, const u32 v, const u32 *m) {
-  r[0] |= v & m[0];
-  r[1] |= v & m[1];
-  r[2] |= v & m[2];
-  r[3] |= v & m[3];
-}
-
-DECLSPEC void set_mark_1x4_S(u32 *v, const u32 offset) {
-  const u32 c = (offset & 15) / 4;
-  const u32 r = 0xff << ((offset & 3) * 8);
-
-  v[0] = (c == 0) ? r : 0;
-  v[1] = (c == 1) ? r : 0;
-  v[2] = (c == 2) ? r : 0;
-  v[3] = (c == 3) ? r : 0;
-}
-
-DECLSPEC void append_0x80_4x4_S(u32 *w0, u32 *w1, u32 *w2, u32 *w3,
-                                const u32 offset) {
-  //u32 v[4];
-
-  //set_mark_1x4_S(v, offset);
-  //printf("%u %u %u %u\n", v[0], v[1], v[2], v[3]); // 0 0 255 0
-
-  // const u32 offset16 = offset / 16;
-  // printf("%u\n", offset16); // 3
-
-  // append_helper_1x4_S(w0, ((offset16 == 0) ? 0x80808080 : 0), v);
-  // append_helper_1x4_S(w1, ((offset16 == 1) ? 0x80808080 : 0), v);
-  // append_helper_1x4_S(w2, ((offset16 == 2) ? 0x80808080 : 0), v);
-  // append_helper_1x4_S(w3, 0x80808080, v);
-  //printf("%u \n", 255 & 0x80808080);
-  //printf("%u \n", w3[0]);
-  //printf("%u \n", w3[1]);
-  //printf("%u \n", w3[2]);
-  //printf("%u \n", w3[3]);
-  w3[2] |= 255 & 0x80808080;
-}
-
 DECLSPEC u32 hc_swap32_S(const u32 v) {
   return ((v & 0xff000000) >> 24) | ((v & 0x00ff0000) >> 8) |
          ((v & 0x0000ff00) << 8) | ((v & 0x000000ff) << 24);
@@ -373,34 +334,25 @@ DECLSPEC void sha256_update(sha256_ctx_t *ctx, __const u32 *w, const int len) {
 }
 
 DECLSPEC void sha256_final(sha256_ctx_t *ctx) {
-  const int pos = ctx->len & 63;
+  
+  sha256_transform(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
 
-  append_0x80_4x4_S(ctx->w0, ctx->w1, ctx->w2, ctx->w3, pos ^ 3);
-
-  if (pos >= 56) {
-    sha256_transform(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
-
-    ctx->w0[0] = 0;
-    ctx->w0[1] = 0;
-    ctx->w0[2] = 0;
-    ctx->w0[3] = 0;
-    ctx->w1[0] = 0;
-    ctx->w1[1] = 0;
-    ctx->w1[2] = 0;
-    ctx->w1[3] = 0;
-    ctx->w2[0] = 0;
-    ctx->w2[1] = 0;
-    ctx->w2[2] = 0;
-    ctx->w2[3] = 0;
-    ctx->w3[0] = 0;
-    ctx->w3[1] = 0;
-    ctx->w3[2] = 0;
-    ctx->w3[3] = 0;
-  }
-
+  ctx->w0[0] = 0;
+  ctx->w0[1] = 0;
+  ctx->w0[2] = 0;
+  ctx->w0[3] = 0;
+  ctx->w1[0] = 0;
+  ctx->w1[1] = 0;
+  ctx->w1[2] = 0;
+  ctx->w1[3] = 0;
+  ctx->w2[0] = 0;
+  ctx->w2[1] = 0;
+  ctx->w2[2] = 0;
+  ctx->w2[3] = 0;
+  ctx->w3[0] = 0;
+  ctx->w3[1] = 0;
   ctx->w3[2] = 0;
-  ctx->w3[3] = 123 * 8;
-
+  ctx->w3[3] = 984; // 123 * 8
   sha256_transform(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
 }
 
@@ -527,7 +479,6 @@ void do_work(
 
     // Mine
     sha256_ctx_t ctx;
-    ctx.len = 64;
     ctx.h[0] = h0;
     ctx.h[1] = h1;
     ctx.h[2] = h2;

@@ -197,7 +197,7 @@ offset = 0
 random = b'\xe3\xa0\x06k\xfcW\x99\xd4\xbeLX(\\\xdf\xfcP\xd2\x81m\x1au[\x1b\xbc\x877\x1c.\xf3\xf2\x84v'
 # random = bytes(np.zeros((batchSize, 32), dtype=np.uint8))
 # print(os.urandom(32))
-data = np.frombuffer(config['header'] + random + config['seed'] + random + b'\x00\x00\x00\x00\x00', dtype=np.uint32)
+data = np.frombuffer(config['header'] + random + config['seed'] + random + b'\x80\x00\x00\x00\x00', dtype=np.uint32)
 # print(data)
 output = np.zeros((batchSize, 32), dtype=np.uint8)
 output_random = np.zeros((batchSize, 32), dtype=np.uint8)
