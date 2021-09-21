@@ -500,8 +500,21 @@ int memcmp(const u32 *a, const u32 *b, int count) {
 }
 
 __kernel __attribute__((reqd_work_group_size(1, 1, 1))) 
-void do_work(__global __const u32 *data, __global u32 *output,
-        __global u8 *output_random, u64 offset, u32 iterations) {
+void do_work(
+  u32 h0,
+  u32 h1,
+  u32 h2,
+  u32 h3,
+  u32 h4,
+  u32 h5,
+  u32 h6,
+  u32 h7,
+  __global __const u32 *data, 
+  __global u32 *output,
+  __global u8 *output_random, 
+  u64 offset,
+  u32 iterations
+) {
 
   // Prepare data
   u32 head[16];
@@ -525,13 +538,31 @@ void do_work(__global __const u32 *data, __global u32 *output,
   u64 index = offset + ((u64)current_id) * ((u64)iterations);
 
   // Prepare
-  sha256_ctx_t ctx0;
-  miner_init(&ctx0, head);
+  // sha256_ctx_t ctx0;
+  // miner_init(&ctx0, head);
+
+  // printf("h0 %u\n", ctx0.h[0]);
+  // printf("h1 %u\n", ctx0.h[1]);
+  // printf("h2 %u\n", ctx0.h[2]);
+  // printf("h3 %u\n", ctx0.h[3]);
+  // printf("h4 %u\n", ctx0.h[4]);
+  // printf("h5 %u\n", ctx0.h[5]);
+  // printf("h6 %u\n", ctx0.h[6]);
+  // printf("h7 %u\n", ctx0.h[7]);
 
   for (int i = 0; i < iterations; i++) {
 
     // Mine
-    sha256_ctx_t ctx = ctx0;
+    sha256_ctx_t ctx;
+    ctx.len = 64;
+    ctx.h[0] = h0;
+    ctx.h[1] = h1;
+    ctx.h[2] = h2;
+    ctx.h[3] = h3;
+    ctx.h[4] = h4;
+    ctx.h[5] = h5;
+    ctx.h[6] = h6;
+    ctx.h[7] = h7;
     miner_apply(&ctx, tail, index);
 
     // Output
@@ -543,7 +574,6 @@ void do_work(__global __const u32 *data, __global u32 *output,
     current[5] = hc_swap32_S(ctx.h[5]);
     current[6] = hc_swap32_S(ctx.h[6]);
     current[7] = hc_swap32_S(ctx.h[7]);
-
     if (memcmp(current, latest, 32) < 0) {
       latest_index = index;
       latest[0] = current[0];
