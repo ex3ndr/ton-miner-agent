@@ -379,6 +379,8 @@ __inline int memcmp(const u32 *a, const u32 *b, int count) {
   return 0;
 }
 
+#define PIPELINES 16
+
 __kernel __attribute__((reqd_work_group_size(1, 1, 1))) 
 void do_work(
   u32 h0,
@@ -432,136 +434,130 @@ void do_work(
 
   u32 current_id = get_global_id(0);
   u32 current[8];
-  u64 index = offset + ((u64)current_id) * ((u64)iterations);
+  u64 startIndex = offset + ((u64)current_id) * ((u64)iterations);
 
   for (int i = 0; i < iterations; i++) {
 
-   // First transform
-   u32 index_a = index & 0xffffffff;
-   u32 index_b = (index >> 4) & 0xffffffff;
+    for(int p = 0; p < PIPELINES; p++) {
 
-   u32 a = h0;
-   u32 b = h1;
-   u32 c = h2;
-   u32 d = h3;
-   u32 e = h4;
-   u32 f = h5;
-   u32 g = h6;
-   u32 h = h7;
+      // Index
+      u32 index = startIndex + i * PIPELINES + p;
+      u32 index_a = index & 0xffffffff;
+      u32 index_b = (index >> 4) & 0xffffffff;
+
+      // First transform
+
+      u32 a = h0;
+      u32 b = h1;
+      u32 c = h2;
+      u32 d = h3;
+      u32 e = h4;
+      u32 f = h5;
+      u32 g = h6;
+      u32 h = h7;
+      
+      u32 w0_t = tail_0 ^ index_a;
+      u32 w1_t = tail_1 ^ index_b;
+      u32 w2_t = tail_2;
+      u32 w3_t = tail_3;
+      u32 w4_t = tail_4;
+      u32 w5_t = tail_5;
+      u32 w6_t = tail_6;
+      u32 w7_t = tail_7;
+      u32 w8_t = tail_8;
+      u32 w9_t = tail_9;
+      u32 wa_t = tail_a;
+      u32 wb_t = tail_b;
+      u32 wc_t = tail_c ^ index_a;
+      u32 wd_t = tail_d ^ index_b;
+      u32 we_t = tail_e;
+      u32 wf_t = tail_f;
    
-   u32 w0_t = tail_0 ^ index_a;
-   u32 w1_t = tail_1 ^ index_b;
-   u32 w2_t = tail_2;
-   u32 w3_t = tail_3;
-   u32 w4_t = tail_4;
-   u32 w5_t = tail_5;
-   u32 w6_t = tail_6;
-   u32 w7_t = tail_7;
-   u32 w8_t = tail_8;
-   u32 w9_t = tail_9;
-   u32 wa_t = tail_a;
-   u32 wb_t = tail_b;
-   u32 wc_t = tail_c ^ index_a;
-   u32 wd_t = tail_d ^ index_b;
-   u32 we_t = tail_e;
-   u32 wf_t = tail_f;
-
-   ROUND_STEP_S(0);
-   ROUND_EXPAND_S();
-   ROUND_STEP_S(16);
-   ROUND_EXPAND_S();
-   ROUND_STEP_S(32);
-   ROUND_EXPAND_S();
-   ROUND_STEP_S(48);
-
-   a = a + h0;
-   b = b + h1;
-   c = c + h2;
-   d = d + h3;
-   e = e + h4;
-   f = f + h5;
-   g = g + h6;
-   h = h + h7;
-
-   // Second Transform
-
-   u32 a_p = a;
-   u32 b_p = b;
-   u32 c_p = c;
-   u32 d_p = d;
-   u32 e_p = e;
-   u32 f_p = f;
-   u32 g_p = g;
-   u32 h_p = h;
-
-   w0_t = 0;
-   w1_t = 0;
-   w2_t = 0;
-   w3_t = 0;
-   w4_t = 0;
-   w5_t = 0;
-   w6_t = 0;
-   w7_t = 0;
-   w8_t = 0;
-   w9_t = 0;
-   wa_t = 0;
-   wb_t = 0;
-   wc_t = 0;
-   wd_t = 0;
-   we_t = 0;
-   wf_t = 984;
-
-   ROUND_STEP_S(0);
-   ROUND_EXPAND_S();
-   ROUND_STEP_S(16);
-   ROUND_EXPAND_S();
-   ROUND_STEP_S(32);
-   ROUND_EXPAND_S();
-   ROUND_STEP_S(48);
-
-   a = a + a_p;
-   b = b + b_p;
-   c = c + c_p;
-   d = d + d_p;
-   e = e + e_p;
-   f = f + f_p;
-   g = g + g_p;
-   h = h + h_p;
+      ROUND_STEP_S(0);
+      ROUND_EXPAND_S();
+      ROUND_STEP_S(16);
+      ROUND_EXPAND_S();
+      ROUND_STEP_S(32);
+      ROUND_EXPAND_S();
+      ROUND_STEP_S(48);
    
-  //  sha256_transform(ctx.w0, ctx.w1, ctx.w2, ctx.w3, ctx.h);
-    // sha256_ctx_t ctx;
-    // ctx.h[0] = h0;
-    // ctx.h[1] = h1;
-    // ctx.h[2] = h2;
-    // ctx.h[3] = h3;
-    // ctx.h[4] = h4;
-    // ctx.h[5] = h5;
-    // ctx.h[6] = h6;
-    // ctx.h[7] = h7;
-    // miner_apply(&ctx, tail, index);
+      a = a + h0;
+      b = b + h1;
+      c = c + h2;
+      d = d + h3;
+      e = e + h4;
+      f = f + h5;
+      g = g + h6;
+      h = h + h7;
 
-    // Output
-    current[0] = hc_swap32_S(a);
-    current[1] = hc_swap32_S(b);
-    current[2] = hc_swap32_S(c);
-    current[3] = hc_swap32_S(d);
-    current[4] = hc_swap32_S(e);
-    current[5] = hc_swap32_S(f);
-    current[6] = hc_swap32_S(g);
-    current[7] = hc_swap32_S(h);
-    if (memcmp(current, latest, 32) < 0) {
-      latest_index = index;
-      latest[0] = current[0];
-      latest[1] = current[1];
-      latest[2] = current[2];
-      latest[3] = current[3];
-      latest[4] = current[4];
-      latest[5] = current[5];
-      latest[6] = current[6];
-      latest[7] = current[7];
+      // Second Transform
+
+      u32 a_p = a;
+      u32 b_p = b;
+      u32 c_p = c;
+      u32 d_p = d;
+      u32 e_p = e;
+      u32 f_p = f;
+      u32 g_p = g;
+      u32 h_p = h;
+
+      w0_t = 0;
+      w1_t = 0;
+      w2_t = 0;
+      w3_t = 0;
+      w4_t = 0;
+      w5_t = 0;
+      w6_t = 0;
+      w7_t = 0;
+      w8_t = 0;
+      w9_t = 0;
+      wa_t = 0;
+      wb_t = 0;
+      wc_t = 0;
+      wd_t = 0;
+      we_t = 0;
+      wf_t = 984;
+
+      ROUND_STEP_S(0);
+      ROUND_EXPAND_S();
+      ROUND_STEP_S(16);
+      ROUND_EXPAND_S();
+      ROUND_STEP_S(32);
+      ROUND_EXPAND_S();
+      ROUND_STEP_S(48);
+
+      a = a + a_p;
+      b = b + b_p;
+      c = c + c_p;
+      d = d + d_p;
+      e = e + e_p;
+      f = f + f_p;
+      g = g + g_p;
+      h = h + h_p;
+   
+      // Output
+      current[0] = hc_swap32_S(a);
+      current[1] = hc_swap32_S(b);
+      current[2] = hc_swap32_S(c);
+      current[3] = hc_swap32_S(d);
+      current[4] = hc_swap32_S(e);
+      current[5] = hc_swap32_S(f);
+      current[6] = hc_swap32_S(g);
+      current[7] = hc_swap32_S(h);
+      if (memcmp(current, latest, 32) < 0) {
+        latest_index = index;
+        latest[0] = current[0];
+        latest[1] = current[1];
+        latest[2] = current[2];
+        latest[3] = current[3];
+        latest[4] = current[4];
+        latest[5] = current[5];
+        latest[6] = current[6];
+        latest[7] = current[7];
+      }
+
+      index++;
     }
-
-    index++;
   }
 
   // Export output
