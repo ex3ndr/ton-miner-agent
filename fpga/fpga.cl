@@ -77,15 +77,6 @@ __constant uint k_sha256[64] = {
     SHA256C3f,
 };
 
-#define SHA256M_A 0x6a09e667U
-#define SHA256M_B 0xbb67ae85U
-#define SHA256M_C 0x3c6ef372U
-#define SHA256M_D 0xa54ff53aU
-#define SHA256M_E 0x510e527fU
-#define SHA256M_F 0x9b05688cU
-#define SHA256M_G 0x1f83d9abU
-#define SHA256M_H 0x5be0cd19U
-
 typedef unsigned int u32;
 typedef unsigned long u64;
 typedef unsigned char u8;
@@ -192,36 +183,6 @@ DECLSPEC u32 hc_swap32_S(const u32 v) {
          ((v & 0x0000ff00) << 8) | ((v & 0x000000ff) << 24);
 }
 
-DECLSPEC void sha256_init(sha256_ctx_t *ctx) {
-  ctx->h[0] = SHA256M_A;
-  ctx->h[1] = SHA256M_B;
-  ctx->h[2] = SHA256M_C;
-  ctx->h[3] = SHA256M_D;
-  ctx->h[4] = SHA256M_E;
-  ctx->h[5] = SHA256M_F;
-  ctx->h[6] = SHA256M_G;
-  ctx->h[7] = SHA256M_H;
-
-  ctx->w0[0] = 0;
-  ctx->w0[1] = 0;
-  ctx->w0[2] = 0;
-  ctx->w0[3] = 0;
-  ctx->w1[0] = 0;
-  ctx->w1[1] = 0;
-  ctx->w1[2] = 0;
-  ctx->w1[3] = 0;
-  ctx->w2[0] = 0;
-  ctx->w2[1] = 0;
-  ctx->w2[2] = 0;
-  ctx->w2[3] = 0;
-  ctx->w3[0] = 0;
-  ctx->w3[1] = 0;
-  ctx->w3[2] = 0;
-  ctx->w3[3] = 0;
-
-  ctx->len = 0;
-}
-
 DECLSPEC void sha256_transform(const u32 *w0, const u32 *w1, const u32 *w2,
                                const u32 *w3, u32 *digest) {
   u32 a = digest[0];
@@ -307,10 +268,13 @@ DECLSPEC void sha256_transform(const u32 *w0, const u32 *w1, const u32 *w2,
   }
 
   ROUND_STEP_S(0);
-  for (int i = 16; i < 64; i += 16) {
-    ROUND_EXPAND_S();
-    ROUND_STEP_S(i);
-  }
+  ROUND_EXPAND_S();
+  ROUND_STEP_S(16);
+  ROUND_EXPAND_S();
+  ROUND_STEP_S(32);
+  ROUND_EXPAND_S();
+  ROUND_STEP_S(48);
+
 
 #undef ROUND_EXPAND_S
 #undef ROUND_STEP_S
@@ -437,7 +401,7 @@ DECLSPEC void sha256_final(sha256_ctx_t *ctx) {
 #define OFFSET_1 0
 #define OFFSET_2 12
 
-void data_init(__global __const u32 *data, u32 *head, u32 *tail) {
+__inline void data_init(__global __const u32 *data, u32 *head, u32 *tail) {
   for (int i = 0; i < 16; i++) {
     head[i] = hc_swap32_S(data[i]);
   }
@@ -446,14 +410,14 @@ void data_init(__global __const u32 *data, u32 *head, u32 *tail) {
   }
 }
 
-void data_export_random(u32 *tail, __global u8 *random) {
+__inline void data_export_random(u32 *tail, __global u8 *random) {
   u8 *tail_8 = (u8 *)tail;
   for (int i = 0; i < RANDOM_SIZE; i++) {
     random[i] = tail_8[i + 27];
   }
 }
 
-void data_finalize(u32 *tail, u64 index) {
+__inline void data_finalize(u32 *tail, u64 index) {
   u32 index_a = index & 0xffffffff;
   u32 index_b = (index >> 4) & 0xffffffff;
   tail[OFFSET_1] = tail[OFFSET_1] ^ index_a;
@@ -464,11 +428,6 @@ void data_finalize(u32 *tail, u64 index) {
   for (int i = 0; i < 16; i++) {
     tail[i] = hc_swap32_S(tail[i]);
   }
-}
-
-void miner_init(sha256_ctx_t *ctx, u32 *head) {
-  sha256_init(ctx);
-  sha256_update(ctx, head, 64);
 }
 
 void miner_apply(sha256_ctx_t *ctx, u32 *tail, u64 index) {
@@ -489,7 +448,7 @@ void miner_apply(sha256_ctx_t *ctx, u32 *tail, u64 index) {
   tail[OFFSET_2 + 1] = tail[OFFSET_2 + 1] ^ index_b;
 }
 
-int memcmp(const u32 *a, const u32 *b, int count) {
+__inline int memcmp(const u32 *a, const u32 *b, int count) {
   const uchar *s1 = (uchar *)a;
   const uchar *s2 = (uchar *)b;
   while (count-- > 0) {
@@ -536,19 +495,6 @@ void do_work(
   u32 current_id = get_global_id(0);
   u32 current[8];
   u64 index = offset + ((u64)current_id) * ((u64)iterations);
-
-  // Prepare
-  // sha256_ctx_t ctx0;
-  // miner_init(&ctx0, head);
-
-  // printf("h0 %u\n", ctx0.h[0]);
-  // printf("h1 %u\n", ctx0.h[1]);
-  // printf("h2 %u\n", ctx0.h[2]);
-  // printf("h3 %u\n", ctx0.h[3]);
-  // printf("h4 %u\n", ctx0.h[4]);
-  // printf("h5 %u\n", ctx0.h[5]);
-  // printf("h6 %u\n", ctx0.h[6]);
-  // printf("h7 %u\n", ctx0.h[7]);
 
   for (int i = 0; i < iterations; i++) {
 
