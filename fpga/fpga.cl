@@ -166,16 +166,24 @@ DECLSPEC void set_mark_1x4_S(u32 *v, const u32 offset) {
 
 DECLSPEC void append_0x80_4x4_S(u32 *w0, u32 *w1, u32 *w2, u32 *w3,
                                 const u32 offset) {
-  u32 v[4];
+  //u32 v[4];
 
-  set_mark_1x4_S(v, offset);
+  //set_mark_1x4_S(v, offset);
+  //printf("%u %u %u %u\n", v[0], v[1], v[2], v[3]); // 0 0 255 0
 
-  const u32 offset16 = offset / 16;
+  // const u32 offset16 = offset / 16;
+  // printf("%u\n", offset16); // 3
 
-  append_helper_1x4_S(w0, ((offset16 == 0) ? 0x80808080 : 0), v);
-  append_helper_1x4_S(w1, ((offset16 == 1) ? 0x80808080 : 0), v);
-  append_helper_1x4_S(w2, ((offset16 == 2) ? 0x80808080 : 0), v);
-  append_helper_1x4_S(w3, ((offset16 == 3) ? 0x80808080 : 0), v);
+  // append_helper_1x4_S(w0, ((offset16 == 0) ? 0x80808080 : 0), v);
+  // append_helper_1x4_S(w1, ((offset16 == 1) ? 0x80808080 : 0), v);
+  // append_helper_1x4_S(w2, ((offset16 == 2) ? 0x80808080 : 0), v);
+  // append_helper_1x4_S(w3, 0x80808080, v);
+  //printf("%u \n", 255 & 0x80808080);
+  //printf("%u \n", w3[0]);
+  //printf("%u \n", w3[1]);
+  //printf("%u \n", w3[2]);
+  //printf("%u \n", w3[3]);
+  w3[2] |= 255 & 0x80808080;
 }
 
 DECLSPEC u32 hc_swap32_S(const u32 v) {
@@ -391,7 +399,7 @@ DECLSPEC void sha256_final(sha256_ctx_t *ctx) {
   }
 
   ctx->w3[2] = 0;
-  ctx->w3[3] = ctx->len * 8;
+  ctx->w3[3] = 123 * 8;
 
   sha256_transform(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
 }
@@ -495,6 +503,25 @@ void do_work(
   u32 current_id = get_global_id(0);
   u32 current[8];
   u64 index = offset + ((u64)current_id) * ((u64)iterations);
+
+
+  // Copy tail
+  u32 tail_0 = tail[0];
+  u32 tail_1 = tail[1];
+  u32 tail_2 = tail[2];
+  u32 tail_3 = tail[3];
+  u32 tail_4 = tail[4];
+  u32 tail_5 = tail[5];
+  u32 tail_6 = tail[6];
+  u32 tail_7 = tail[7];
+  u32 tail_8 = tail[8];
+  u32 tail_9 = tail[9];
+  u32 tail_a = tail[10];
+  u32 tail_b = tail[11];
+  u32 tail_c = tail[12];
+  u32 tail_d = tail[13];
+  u32 tail_e = tail[14];
+  u32 tail_f = tail[15];
 
   for (int i = 0; i < iterations; i++) {
 
