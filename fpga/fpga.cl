@@ -152,34 +152,6 @@ DECLSPEC u32 hc_swap32_S(const u32 v) {
          ((v & 0x0000ff00) << 8) | ((v & 0x000000ff) << 24);
 }
 
-DECLSPEC void sha256_transform(const u32 *w0, const u32 *w1, const u32 *w2,
-                               const u32 *w3, u32 *digest) {
-  u32 a = digest[0];
-  u32 b = digest[1];
-  u32 c = digest[2];
-  u32 d = digest[3];
-  u32 e = digest[4];
-  u32 f = digest[5];
-  u32 g = digest[6];
-  u32 h = digest[7];
-
-  u32 w0_t = w0[0];
-  u32 w1_t = w0[1];
-  u32 w2_t = w0[2];
-  u32 w3_t = w0[3];
-  u32 w4_t = w1[0];
-  u32 w5_t = w1[1];
-  u32 w6_t = w1[2];
-  u32 w7_t = w1[3];
-  u32 w8_t = w2[0];
-  u32 w9_t = w2[1];
-  u32 wa_t = w2[2];
-  u32 wb_t = w2[3];
-  u32 wc_t = w3[0];
-  u32 wd_t = w3[1];
-  u32 we_t = w3[2];
-  u32 wf_t = w3[3];
-
 #define ROUND_EXPAND_S()                                                       \
   {                                                                            \
     w0_t = SHA256_EXPAND_S(we_t, w9_t, w1_t, w0_t);                            \
@@ -236,125 +208,97 @@ DECLSPEC void sha256_transform(const u32 *w0, const u32 *w1, const u32 *w2,
                   k_sha256[i + 15]);                                           \
   }
 
-  ROUND_STEP_S(0);
-  ROUND_EXPAND_S();
-  ROUND_STEP_S(16);
-  ROUND_EXPAND_S();
-  ROUND_STEP_S(32);
-  ROUND_EXPAND_S();
-  ROUND_STEP_S(48);
+// DECLSPEC void sha256_transform(const u32 *w0, const u32 *w1, const u32 *w2,
+//                                const u32 *w3, u32 *digest) {
+//   u32 a = digest[0];
+//   u32 b = digest[1];
+//   u32 c = digest[2];
+//   u32 d = digest[3];
+//   u32 e = digest[4];
+//   u32 f = digest[5];
+//   u32 g = digest[6];
+//   u32 h = digest[7];
 
+//   u32 w0_t = w0[0];
+//   u32 w1_t = w0[1];
+//   u32 w2_t = w0[2];
+//   u32 w3_t = w0[3];
+//   u32 w4_t = w1[0];
+//   u32 w5_t = w1[1];
+//   u32 w6_t = w1[2];
+//   u32 w7_t = w1[3];
+//   u32 w8_t = w2[0];
+//   u32 w9_t = w2[1];
+//   u32 wa_t = w2[2];
+//   u32 wb_t = w2[3];
+//   u32 wc_t = w3[0];
+//   u32 wd_t = w3[1];
+//   u32 we_t = w3[2];
+//   u32 wf_t = w3[3];
 
-#undef ROUND_EXPAND_S
-#undef ROUND_STEP_S
+//   ROUND_STEP_S(0);
+//   ROUND_EXPAND_S();
+//   ROUND_STEP_S(16);
+//   ROUND_EXPAND_S();
+//   ROUND_STEP_S(32);
+//   ROUND_EXPAND_S();
+//   ROUND_STEP_S(48);
 
-  digest[0] += a;
-  digest[1] += b;
-  digest[2] += c;
-  digest[3] += d;
-  digest[4] += e;
-  digest[5] += f;
-  digest[6] += g;
-  digest[7] += h;
-}
+//   digest[0] += a;
+//   digest[1] += b;
+//   digest[2] += c;
+//   digest[3] += d;
+//   digest[4] += e;
+//   digest[5] += f;
+//   digest[6] += g;
+//   digest[7] += h;
+// }
 
-DECLSPEC void sha256_update_64(sha256_ctx_t *ctx, u32 *w0, u32 *w1, u32 *w2,
-                               u32 *w3, const int len) {
-  if (len == 0)
-    return;
+// DECLSPEC void sha256_update_64(sha256_ctx_t *ctx, u32 *w0, u32 *w1, u32 *w2,
+//                                u32 *w3, const int len) {
+//   ctx->w0[0] = w0[0];
+//   ctx->w0[1] = w0[1];
+//   ctx->w0[2] = w0[2];
+//   ctx->w0[3] = w0[3];
+//   ctx->w1[0] = w1[0];
+//   ctx->w1[1] = w1[1];
+//   ctx->w1[2] = w1[2];
+//   ctx->w1[3] = w1[3];
+//   ctx->w2[0] = w2[0];
+//   ctx->w2[1] = w2[1];
+//   ctx->w2[2] = w2[2];
+//   ctx->w2[3] = w2[3];
+//   ctx->w3[0] = w3[0];
+//   ctx->w3[1] = w3[1];
+//   ctx->w3[2] = w3[2];
+//   ctx->w3[3] = w3[3];
+// }
 
-  const int pos = ctx->len & 63;
+// DECLSPEC void sha256_update(sha256_ctx_t *ctx, __const u32 *w, const int len) {
+//   u32 w0[4];
+//   u32 w1[4];
+//   u32 w2[4];
+//   u32 w3[4];
+//   int pos4 = 0;
+//   w0[0] = w[pos4 + 0];
+//   w0[1] = w[pos4 + 1];
+//   w0[2] = w[pos4 + 2];
+//   w0[3] = w[pos4 + 3];
+//   w1[0] = w[pos4 + 4];
+//   w1[1] = w[pos4 + 5];
+//   w1[2] = w[pos4 + 6];
+//   w1[3] = w[pos4 + 7];
+//   w2[0] = w[pos4 + 8];
+//   w2[1] = w[pos4 + 9];
+//   w2[2] = w[pos4 + 10];
+//   w2[3] = w[pos4 + 11];
+//   w3[0] = w[pos4 + 12];
+//   w3[1] = w[pos4 + 13];
+//   w3[2] = w[pos4 + 14];
+//   w3[3] = w[pos4 + 15];
 
-  ctx->len += len;
-
-  // if (pos == 0) // Always 0
-  ctx->w0[0] = w0[0];
-  ctx->w0[1] = w0[1];
-  ctx->w0[2] = w0[2];
-  ctx->w0[3] = w0[3];
-  ctx->w1[0] = w1[0];
-  ctx->w1[1] = w1[1];
-  ctx->w1[2] = w1[2];
-  ctx->w1[3] = w1[3];
-  ctx->w2[0] = w2[0];
-  ctx->w2[1] = w2[1];
-  ctx->w2[2] = w2[2];
-  ctx->w2[3] = w2[3];
-  ctx->w3[0] = w3[0];
-  ctx->w3[1] = w3[1];
-  ctx->w3[2] = w3[2];
-  ctx->w3[3] = w3[3];
-
-  if (len == 64) {
-    sha256_transform(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
-
-    ctx->w0[0] = 0;
-    ctx->w0[1] = 0;
-    ctx->w0[2] = 0;
-    ctx->w0[3] = 0;
-    ctx->w1[0] = 0;
-    ctx->w1[1] = 0;
-    ctx->w1[2] = 0;
-    ctx->w1[3] = 0;
-    ctx->w2[0] = 0;
-    ctx->w2[1] = 0;
-    ctx->w2[2] = 0;
-    ctx->w2[3] = 0;
-    ctx->w3[0] = 0;
-    ctx->w3[1] = 0;
-    ctx->w3[2] = 0;
-    ctx->w3[3] = 0;
-  }
-}
-
-DECLSPEC void sha256_update(sha256_ctx_t *ctx, __const u32 *w, const int len) {
-  u32 w0[4];
-  u32 w1[4];
-  u32 w2[4];
-  u32 w3[4];
-  int pos4 = 0;
-  w0[0] = w[pos4 + 0];
-  w0[1] = w[pos4 + 1];
-  w0[2] = w[pos4 + 2];
-  w0[3] = w[pos4 + 3];
-  w1[0] = w[pos4 + 4];
-  w1[1] = w[pos4 + 5];
-  w1[2] = w[pos4 + 6];
-  w1[3] = w[pos4 + 7];
-  w2[0] = w[pos4 + 8];
-  w2[1] = w[pos4 + 9];
-  w2[2] = w[pos4 + 10];
-  w2[3] = w[pos4 + 11];
-  w3[0] = w[pos4 + 12];
-  w3[1] = w[pos4 + 13];
-  w3[2] = w[pos4 + 14];
-  w3[3] = w[pos4 + 15];
-
-  sha256_update_64(ctx, w0, w1, w2, w3, len);
-}
-
-DECLSPEC void sha256_final(sha256_ctx_t *ctx) {
-  
-  sha256_transform(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
-
-  ctx->w0[0] = 0;
-  ctx->w0[1] = 0;
-  ctx->w0[2] = 0;
-  ctx->w0[3] = 0;
-  ctx->w1[0] = 0;
-  ctx->w1[1] = 0;
-  ctx->w1[2] = 0;
-  ctx->w1[3] = 0;
-  ctx->w2[0] = 0;
-  ctx->w2[1] = 0;
-  ctx->w2[2] = 0;
-  ctx->w2[3] = 0;
-  ctx->w3[0] = 0;
-  ctx->w3[1] = 0;
-  ctx->w3[2] = 0;
-  ctx->w3[3] = 984; // 123 * 8
-  sha256_transform(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
-}
+//   sha256_update_64(ctx, w0, w1, w2, w3, len);
+// }
 
 #define RANDOM_SIZE 32
 #define SEED_SIZE 16
@@ -390,23 +334,40 @@ __inline void data_finalize(u32 *tail, u64 index) {
   }
 }
 
-void miner_apply(sha256_ctx_t *ctx, u32 *tail, u64 index) {
-  u32 index_a = index & 0xffffffff;
-  u32 index_b = (index >> 4) & 0xffffffff;
+// void miner_apply(sha256_ctx_t *ctx, u32 *tail, u64 index) {
+//   u32 index_a = index & 0xffffffff;
+//   u32 index_b = (index >> 4) & 0xffffffff;
 
-  tail[OFFSET_1] = tail[OFFSET_1] ^ index_a;
-  tail[OFFSET_1 + 1] = tail[OFFSET_1 + 1] ^ index_b;
-  tail[OFFSET_2] = tail[OFFSET_2] ^ index_a;
-  tail[OFFSET_2 + 1] = tail[OFFSET_2 + 1] ^ index_b;
+//   tail[OFFSET_1] = tail[OFFSET_1] ^ index_a;
+//   tail[OFFSET_1 + 1] = tail[OFFSET_1 + 1] ^ index_b;
+//   tail[OFFSET_2] = tail[OFFSET_2] ^ index_a;
+//   tail[OFFSET_2 + 1] = tail[OFFSET_2 + 1] ^ index_b;
 
-  sha256_update(ctx, tail, 59);
-  sha256_final(ctx);
+//   sha256_update(ctx, tail, 59);
+//   sha256_transform(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
+//   ctx->w0[0] = 0;
+//   ctx->w0[1] = 0;
+//   ctx->w0[2] = 0;
+//   ctx->w0[3] = 0;
+//   ctx->w1[0] = 0;
+//   ctx->w1[1] = 0;
+//   ctx->w1[2] = 0;
+//   ctx->w1[3] = 0;
+//   ctx->w2[0] = 0;
+//   ctx->w2[1] = 0;
+//   ctx->w2[2] = 0;
+//   ctx->w2[3] = 0;
+//   ctx->w3[0] = 0;
+//   ctx->w3[1] = 0;
+//   ctx->w3[2] = 0;
+//   ctx->w3[3] = 984; // 123 * 8
+//   sha256_transform(ctx->w0, ctx->w1, ctx->w2, ctx->w3, ctx->h);
 
-  tail[OFFSET_1] = tail[OFFSET_1] ^ index_a;
-  tail[OFFSET_1 + 1] = tail[OFFSET_1 + 1] ^ index_b;
-  tail[OFFSET_2] = tail[OFFSET_2] ^ index_a;
-  tail[OFFSET_2 + 1] = tail[OFFSET_2 + 1] ^ index_b;
-}
+//   tail[OFFSET_1] = tail[OFFSET_1] ^ index_a;
+//   tail[OFFSET_1 + 1] = tail[OFFSET_1 + 1] ^ index_b;
+//   tail[OFFSET_2] = tail[OFFSET_2] ^ index_a;
+//   tail[OFFSET_2 + 1] = tail[OFFSET_2 + 1] ^ index_b;
+// }
 
 __inline int memcmp(const u32 *a, const u32 *b, int count) {
   const uchar *s1 = (uchar *)a;
@@ -436,28 +397,10 @@ void do_work(
 ) {
 
   // Prepare data
-  u32 head[16];
   u32 tail[16];
-  data_init(data, head, tail);
-
-  // Latest
-  u32 latest[8];
-  u64 latest_index;
-  latest[0] = 4294967294;
-  latest[1] = 4294967294;
-  latest[2] = 4294967294;
-  latest[3] = 4294967294;
-  latest[4] = 4294967294;
-  latest[5] = 4294967294;
-  latest[6] = 4294967294;
-  latest[7] = 4294967294;
-
-  u32 current_id = get_global_id(0);
-  u32 current[8];
-  u64 index = offset + ((u64)current_id) * ((u64)iterations);
-
-
-  // Copy tail
+  for (int i = 0; i < 16; i++) {
+    tail[i] = hc_swap32_S(data[i + 16]);
+  }
   u32 tail_0 = tail[0];
   u32 tail_1 = tail[1];
   u32 tail_2 = tail[2];
@@ -475,29 +418,137 @@ void do_work(
   u32 tail_e = tail[14];
   u32 tail_f = tail[15];
 
+  // Latest
+  u32 latest[8];
+  u64 latest_index;
+  latest[0] = 4294967294;
+  latest[1] = 4294967294;
+  latest[2] = 4294967294;
+  latest[3] = 4294967294;
+  latest[4] = 4294967294;
+  latest[5] = 4294967294;
+  latest[6] = 4294967294;
+  latest[7] = 4294967294;
+
+  u32 current_id = get_global_id(0);
+  u32 current[8];
+  u64 index = offset + ((u64)current_id) * ((u64)iterations);
+
   for (int i = 0; i < iterations; i++) {
 
-    // Mine
-    sha256_ctx_t ctx;
-    ctx.h[0] = h0;
-    ctx.h[1] = h1;
-    ctx.h[2] = h2;
-    ctx.h[3] = h3;
-    ctx.h[4] = h4;
-    ctx.h[5] = h5;
-    ctx.h[6] = h6;
-    ctx.h[7] = h7;
-    miner_apply(&ctx, tail, index);
+   // First transform
+   u32 index_a = index & 0xffffffff;
+   u32 index_b = (index >> 4) & 0xffffffff;
+
+   u32 a = h0;
+   u32 b = h1;
+   u32 c = h2;
+   u32 d = h3;
+   u32 e = h4;
+   u32 f = h5;
+   u32 g = h6;
+   u32 h = h7;
+   
+   u32 w0_t = tail_0 ^ index_a;
+   u32 w1_t = tail_1 ^ index_b;
+   u32 w2_t = tail_2;
+   u32 w3_t = tail_3;
+   u32 w4_t = tail_4;
+   u32 w5_t = tail_5;
+   u32 w6_t = tail_6;
+   u32 w7_t = tail_7;
+   u32 w8_t = tail_8;
+   u32 w9_t = tail_9;
+   u32 wa_t = tail_a;
+   u32 wb_t = tail_b;
+   u32 wc_t = tail_c ^ index_a;
+   u32 wd_t = tail_d ^ index_b;
+   u32 we_t = tail_e;
+   u32 wf_t = tail_f;
+
+   ROUND_STEP_S(0);
+   ROUND_EXPAND_S();
+   ROUND_STEP_S(16);
+   ROUND_EXPAND_S();
+   ROUND_STEP_S(32);
+   ROUND_EXPAND_S();
+   ROUND_STEP_S(48);
+
+   a = a + h0;
+   b = b + h1;
+   c = c + h2;
+   d = d + h3;
+   e = e + h4;
+   f = f + h5;
+   g = g + h6;
+   h = h + h7;
+
+   // Second Transform
+
+   u32 a_p = a;
+   u32 b_p = b;
+   u32 c_p = c;
+   u32 d_p = d;
+   u32 e_p = e;
+   u32 f_p = f;
+   u32 g_p = g;
+   u32 h_p = h;
+
+   w0_t = 0;
+   w1_t = 0;
+   w2_t = 0;
+   w3_t = 0;
+   w4_t = 0;
+   w5_t = 0;
+   w6_t = 0;
+   w7_t = 0;
+   w8_t = 0;
+   w9_t = 0;
+   wa_t = 0;
+   wb_t = 0;
+   wc_t = 0;
+   wd_t = 0;
+   we_t = 0;
+   wf_t = 984;
+
+   ROUND_STEP_S(0);
+   ROUND_EXPAND_S();
+   ROUND_STEP_S(16);
+   ROUND_EXPAND_S();
+   ROUND_STEP_S(32);
+   ROUND_EXPAND_S();
+   ROUND_STEP_S(48);
+
+   a = a + a_p;
+   b = b + b_p;
+   c = c + c_p;
+   d = d + d_p;
+   e = e + e_p;
+   f = f + f_p;
+   g = g + g_p;
+   h = h + h_p;
+   
+  //  sha256_transform(ctx.w0, ctx.w1, ctx.w2, ctx.w3, ctx.h);
+    // sha256_ctx_t ctx;
+    // ctx.h[0] = h0;
+    // ctx.h[1] = h1;
+    // ctx.h[2] = h2;
+    // ctx.h[3] = h3;
+    // ctx.h[4] = h4;
+    // ctx.h[5] = h5;
+    // ctx.h[6] = h6;
+    // ctx.h[7] = h7;
+    // miner_apply(&ctx, tail, index);
 
     // Output
-    current[0] = hc_swap32_S(ctx.h[0]);
-    current[1] = hc_swap32_S(ctx.h[1]);
-    current[2] = hc_swap32_S(ctx.h[2]);
-    current[3] = hc_swap32_S(ctx.h[3]);
-    current[4] = hc_swap32_S(ctx.h[4]);
-    current[5] = hc_swap32_S(ctx.h[5]);
-    current[6] = hc_swap32_S(ctx.h[6]);
-    current[7] = hc_swap32_S(ctx.h[7]);
+    current[0] = hc_swap32_S(a);
+    current[1] = hc_swap32_S(b);
+    current[2] = hc_swap32_S(c);
+    current[3] = hc_swap32_S(d);
+    current[4] = hc_swap32_S(e);
+    current[5] = hc_swap32_S(f);
+    current[6] = hc_swap32_S(g);
+    current[7] = hc_swap32_S(h);
     if (memcmp(current, latest, 32) < 0) {
       latest_index = index;
       latest[0] = current[0];
