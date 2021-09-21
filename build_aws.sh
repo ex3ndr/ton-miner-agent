@@ -1,4 +1,3 @@
-mkdir -p build
 cd build
-v++ -t hw --platform xilinx_aws-vu9p-f1_shell-v04261818_201920_2 -c -k do_work -o'miner.aws.xo' ../fpga/fpga.cl
-v++ -t hw --platform xilinx_aws-vu9p-f1_shell-v04261818_201920_2 --link miner.aws.xo -o'miner.aws.xclbin'
+rm -fr to_aws
+$VITIS_DIR/tools/create_vitis_afi.sh -xclbin=miner.xclbin -o=miner -s3_bucket=some-afi -s3_dcp_key=dcp -s3_logs_key=logs

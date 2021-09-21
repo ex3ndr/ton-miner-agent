@@ -1,4 +1,4 @@
-#define DECLSPEC  __inline static
+#define DECLSPEC static
 #define SHA256C00 0x428a2f98u
 #define SHA256C01 0x71374491u
 #define SHA256C02 0xb5c0fbcfu
