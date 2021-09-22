@@ -143,13 +143,13 @@ platforms = cl.get_platforms()
 devices = cl.get_platforms()[0].get_devices()
 ctx = cl.Context(devices)
 src = ''
-# with open(os.path.join(os.path.dirname(__file__),"kernels/sha256_util.cl"), "r") as rf:
-#     src += rf.read()
-# src += '\n'    
-# with open(os.path.join(os.path.dirname(__file__),"kernels/sha256_impl.cl"), "r") as rf:
-#     src += rf.read()    
-# src += '\n'
-with open(os.path.join(os.path.dirname(__file__),"kernels/miner2.cl"), "r") as rf:
+with open(os.path.join(os.path.dirname(__file__),"kernels/sha256_util.cl"), "r") as rf:
+    src += rf.read()
+src += '\n'    
+with open(os.path.join(os.path.dirname(__file__),"kernels/sha256_impl.cl"), "r") as rf:
+    src += rf.read()    
+src += '\n'
+with open(os.path.join(os.path.dirname(__file__),"kernels/miner.cl"), "r") as rf:
     src += rf.read()
 program = cl.Program(ctx, src).build()
 
@@ -336,14 +336,14 @@ def miner_job(index, deviceId):
         config['lock'].release()
 
         event1 = program.do_work(queue[deviceId], (batchSize,), None, 
-            np.uint32(m._h[0]),
-            np.uint32(m._h[1]),
-            np.uint32(m._h[2]),
-            np.uint32(m._h[3]),
-            np.uint32(m._h[4]),
-            np.uint32(m._h[5]),
-            np.uint32(m._h[6]),
-            np.uint32(m._h[7]),
+            # np.uint32(m._h[0]),
+            # np.uint32(m._h[1]),
+            # np.uint32(m._h[2]),
+            # np.uint32(m._h[3]),
+            # np.uint32(m._h[4]),
+            # np.uint32(m._h[5]),
+            # np.uint32(m._h[6]),
+            # np.uint32(m._h[7]),
             cl_data,
             cl_output_1,
             cl_output_1_random,
@@ -363,14 +363,14 @@ def miner_job(index, deviceId):
             config['lock'].release()
 
             event2 = program.do_work(queue[deviceId], (batchSize,), None, 
-                np.uint32(m._h[0]),
-                np.uint32(m._h[1]),
-                np.uint32(m._h[2]),
-                np.uint32(m._h[3]),
-                np.uint32(m._h[4]),
-                np.uint32(m._h[5]),
-                np.uint32(m._h[6]),
-                np.uint32(m._h[7]),
+                # np.uint32(m._h[0]),
+                # np.uint32(m._h[1]),
+                # np.uint32(m._h[2]),
+                # np.uint32(m._h[3]),
+                # np.uint32(m._h[4]),
+                # np.uint32(m._h[5]),
+                # np.uint32(m._h[6]),
+                # np.uint32(m._h[7]),
                 cl_data, 
                 cl_output_2, 
                 cl_output_2_random,
