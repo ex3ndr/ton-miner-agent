@@ -21,16 +21,16 @@ import binascii
 
 # Sources
 source1 = ''
-with open(os.path.join(os.path.dirname(__file__),"kernels/sha256_util.cl"), "r") as rf:
+with open(os.path.join(os.path.dirname(__file__),"aicruncher/kernels/sha256_util.cl"), "r") as rf:
     source1 += rf.read()
 source1 += '\n'    
-with open(os.path.join(os.path.dirname(__file__),"kernels/sha256_impl.cl"), "r") as rf:
+with open(os.path.join(os.path.dirname(__file__),"aicruncher/kernels/sha256_impl.cl"), "r") as rf:
     source1 += rf.read()    
 source1 += '\n'
-with open(os.path.join(os.path.dirname(__file__),"kernels/miner.cl"), "r") as rf:
+with open(os.path.join(os.path.dirname(__file__),"aicruncher/kernels/miner.cl"), "r") as rf:
     source1 += rf.read()
 source2 = ''
-with open(os.path.join(os.path.dirname(__file__),"kernels/miner2.cl"), "r") as rf:
+with open(os.path.join(os.path.dirname(__file__),"aicruncher/kernels/miner2.cl"), "r") as rf:
     source2 += rf.read()
 
 # Init OpenCL
