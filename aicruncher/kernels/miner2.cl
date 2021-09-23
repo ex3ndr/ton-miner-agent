@@ -297,7 +297,7 @@ __kernel void do_work(
   for (int i = 0; i < iterations; i++) {
 
       // Index
-      u32 index = startIndex + i;
+      u64 index = startIndex + i;
       u32 index_a = index & 0xffffffff;
       u32 index_b = (index >> 4) & 0xffffffff;
 
