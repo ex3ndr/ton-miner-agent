@@ -87,7 +87,11 @@ cl.enqueue_copy(queue, output, cl_output)
 cl.enqueue_copy(queue, output_random, cl_output_random)
 
 print("Result")
+golden_output = []
+golden_random = []
 for i in range(0, batchSize):
+    golden_output.append(bytes(output[i]).hex())
+    golden_random.append(bytes(output_random[i]).hex())
     print(bytes(output[i]).hex() + ":" + bytes(output_random[i]).hex())
 
 # kernel-2
@@ -114,4 +118,8 @@ cl.enqueue_copy(queue, output_random, cl_output_random)
 
 print("Result")
 for i in range(0, batchSize):
+    if bytes(output[i]).hex() != golden_output[i]:
+        print("Inavlid output")
+    if bytes(output_random[i]).hex() != golden_random[i]:
+        print("Inavlid random")
     print(bytes(output[i]).hex() + ":" + bytes(output_random[i]).hex())
