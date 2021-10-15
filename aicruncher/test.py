@@ -55,15 +55,45 @@ data = np.frombuffer(header + random + seed + random + b'\x80\x00\x00\x00\x00', 
 hash = SHA256()
 hash.update(bytes(data[0:16]))
 init_vector = hash._h
-offset = 1000000000000
-internal_iterations = 100000
-batchSize = 10
+offset = 0
+internal_iterations = 1
+batchSize = 1
 print("Test data:")
 print(header.hex())
 print(seed.hex())
 print(random.hex())
 print(bytes(data).hex())
+print(len(bytes(data)))
 print(init_vector)
+
+hash2 = SHA256()
+print("initial:")
+print(hash2._h)
+print(hash2._counter)
+print(hash2._cache)
+
+hash2.update(bytes(data)[0:64])
+hs = [struct.pack('!L', i) for i in hash2._h[:32]]
+hs = b''.join(hs)
+
+print("after_header:")
+print(hash2._h)
+print(hs.hex())
+print(bytes(data)[64:128].hex())
+
+hash2.update(bytes(data)[64:128])
+hs = [struct.pack('!L', i) for i in hash2._h[:32]]
+hs = b''.join(hs)
+print("after_tail:")
+print(hash2._h)
+print(hs.hex())
+
+hash2.update((b'\0' * 62) + bytes.fromhex('03D8'))
+hs = [struct.pack('!L', i) for i in hash2._h[:32]]
+hs = b''.join(hs)
+print("after_padding:")
+print(hash2._h)
+print(hs.hex())
 
 # Buffers
 output = np.zeros((batchSize, 32), dtype=np.uint8)
