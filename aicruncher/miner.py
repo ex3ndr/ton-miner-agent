@@ -199,7 +199,8 @@ def miner_job(index, deviceId):
     config = latest_config
     start = time.time()
     # logging.info("[" + str(index) + "/"+str(deviceId)+"]: Job started")
-    random = os.urandom(32)
+    # random = os.urandom(32)
+    random = bytes(np.random.bytes(32))
     data = np.frombuffer(config['header'] + random + config['seed'] + random + b'\x80\x00\x00\x00\x00', dtype=np.uint32)
     m = SHA256()
     m.update(bytes(data[0:16]))

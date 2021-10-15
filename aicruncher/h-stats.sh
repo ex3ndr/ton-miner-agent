@@ -20,7 +20,7 @@ else
 fi
 
 # Uptime
-local ver=0.0.41
+local ver=0.0.42
 local hs_units="mhs"
 
 # Performance
