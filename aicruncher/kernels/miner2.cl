@@ -219,7 +219,7 @@ __inline void data_export_random(u32 *tail, __global u8 *random) {
 
 __inline void data_finalize(u32 *tail, u64 index) {
   u32 index_a = index & 0xffffffff;
-  u32 index_b = (index >> 4) & 0xffffffff;
+  u32 index_b = (index >> 32) & 0xffffffff;
   tail[OFFSET_1] = tail[OFFSET_1] ^ index_a;
   tail[OFFSET_1 + 1] = tail[OFFSET_1 + 1] ^ index_b;
   tail[OFFSET_2] = tail[OFFSET_2] ^ index_a;
@@ -299,7 +299,7 @@ __kernel void do_work(
       // Index
       u64 index = startIndex + i;
       u32 index_a = index & 0xffffffff;
-      u32 index_b = (index >> 4) & 0xffffffff;
+      u32 index_b = (index >> 32) & 0xffffffff;
 
       // First transform
 
